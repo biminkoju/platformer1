@@ -4,8 +4,16 @@ import pygame,sys
 #pygame setup
 pygame.init()
 
+#mapload
+mapPath="map1"
+def mapLoad(path):
+    filename = path + ".txt"
+    with open(filename, "r") as fp:
+        tileMap = fp.read().splitlines()
+    return tileMap
+
 #image loading shit
-WindowLogo=pygame.image.load('./assets/1.png')
+WindowLogo=pygame.image.load('./assets/icon.png')
 playerimage=pygame.image.load('./assets/player.png')
 tile1=pygame.image.load('./assets/tile1.png')
 tile2=pygame.image.load('./assets/tile2.png')
@@ -27,23 +35,11 @@ playerYmomentum=0
 airTimer=0
 
 tiledim=tile1.get_height()
-playerrect=pygame.Rect(50,50,playerimage.get_width(),playerimage.get_height())
+playerrect=pygame.Rect(50,50,(playerimage.get_width())-6,(playerimage.get_height())-3)
 
-tilemap=[
-        ['0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0',],
-        ['0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0',],
-        ['0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0',],
-        ['0','0','0','1','1','1','0','0','0','0','0','0','0','0','0','0','0','0','0',],
-        ['0','0','0','0','2','0','0','0','0','0','0','0','0','0','0','0','0','0','0',],
-        ['1','1','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0',],
-        ['2','2','1','0','0','0','0','1','1','0','0','0','0','0','0','0','0','0','0',],
-        ['2','2','2','1','1','1','1','2','2','1','1','1','1','1','1','1','1','1','1',],
-        ['2','2','2','2','2','2','2','2','2','2','2','2','2','2','2','2','2','2','2',],
-        ['2','2','2','2','2','2','2','2','2','2','2','2','2','2','2','2','2','2','2',],
-        ['2','2','2','2','2','2','2','2','2','2','2','2','2','2','2','2','2','2','2',],
-        ['2','2','2','2','2','2','2','2','2','2','2','2','2','2','2','2','2','2','2',],
-        ['2','2','2','2','2','2','2','2','2','2','2','2','2','2','2','2','2','2','2',]
-]
+cammeraPos=[0,0]
+
+#functions bitch
 
 def collisionTest(rect,tiles):
     hitlist=[]
@@ -77,17 +73,21 @@ def move(rect,movement,tiles):
 #main loop
 while running:        
     display.fill((0,0,0))
+
+    #locks the cammera to the player
+    cammeraPos[0]+=((playerrect.x-cammeraPos[0])-155)/20        #the 155 is half of the display width after we have resized the screen to zoom in ie:150 and 5 cuz the player is 10 px wide
+    cammeraPos[1]+=((playerrect.y-cammeraPos[1])-106)/20         #same thing here but with height
     
     tilerect=[]
 
     y=0
-    for row in tilemap:
+    for row in mapLoad(mapPath):
         x=0
         for tile in row:
             if tile=='1':
-                display.blit(tile1,(x*tiledim,y*tiledim))
+                display.blit(tile1,(x*tiledim-cammeraPos[0],y*tiledim-cammeraPos[1]))
             if tile=='2':
-                display.blit(tile2,(x*tiledim,y*tiledim))
+                display.blit(tile2,(x*tiledim-cammeraPos[0],y*tiledim-cammeraPos[1]))
             if tile!='0':
                 tilerect.append(pygame.Rect(x*tiledim,y*tiledim,tiledim,tiledim))
             x+=1
@@ -95,6 +95,7 @@ while running:
 
 
     playerMovement=[0,0]
+
     if movingRight==True:
         playerMovement[0]+=2
     if movingLeft==True:
@@ -111,7 +112,7 @@ while running:
     else:
         airTimer+=1
     
-    display.blit(playerimage,(playerrect.x,playerrect.y))    
+    display.blit(playerimage,(playerrect.x-cammeraPos[0],playerrect.y-cammeraPos[1]))    
 
     #event loop    
     for event in pygame.event.get():
